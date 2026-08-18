@@ -1,8 +1,512 @@
 {
-  "id": "TC001",
-  "input": "I was charged twice for my subscription.",
-  "expected_category": "billing",
-  "expected_summary": "Customer reports a duplicate subscription charge.",
+  "dataset_version": "1.0",
+  "description": "Human-verified golden dataset for LLM customer support classification and summarization evaluation.",
+  "categories": [
+    "billing",
+    "technical",
+    "account",
+    "general"
+  ],
+  "test_cases": [
+  {
+    "id": "TC001",
+    "input": "I was charged twice for my monthly subscription. Can you refund the duplicate payment?",
+    "expected_output": {
+      "category": "billing",
+      "summary": "The customer was charged twice for their subscription and wants a refund for the duplicate payment."
+    },
+    "expected_difficulty": "easy",
+    "notes": "Clear duplicate payment issue."
+  },
+  {
+    "id": "TC002",
+    "input": "The application crashes every time I try to upload a PDF document.",
+    "expected_output": {
+      "category": "technical",
+      "summary": "The customer reports that the application crashes when uploading a PDF document."
+    },
+    "expected_difficulty": "easy",
+    "notes": "Clear application malfunction."
+  },
+  {
+    "id": "TC003",
+    "input": "I forgot my password and cannot log into my account.",
+    "expected_output": {
+      "category": "account",
+      "summary": "The customer cannot access their account because they forgot their password."
+    },
+    "expected_difficulty": "easy",
+    "notes": "Clear account access problem."
+  },
+  {
+    "id": "TC004",
+    "input": "What are your customer support hours?",
+    "expected_output": {
+      "category": "general",
+      "summary": "The customer is asking about customer support operating hours."
+    },
+    "expected_difficulty": "easy",
+    "notes": "General information request."
+  },
+  {
+    "id": "TC005",
+    "input": "My card was charged but my subscription still says it is unpaid.",
+    "expected_output": {
+      "category": "billing",
+      "summary": "The customer was charged but their subscription still shows as unpaid."
+    },
+    "expected_difficulty": "medium",
+    "notes": "Billing issue involving payment status."
+  },
+  {
+    "id": "TC006",
+    "input": "The website loads normally but the checkout button does nothing when I click it.",
+    "expected_output": {
+      "category": "technical",
+      "summary": "The customer reports that the checkout button does not respond when clicked."
+    },
+    "expected_difficulty": "medium",
+    "notes": "Specific technical functionality failure."
+  },
+  {
+    "id": "TC007",
+    "input": "Please change the email address associated with my account.",
+    "expected_output": {
+      "category": "account",
+      "summary": "The customer wants to change the email address associated with their account."
+    },
+    "expected_difficulty": "easy",
+    "notes": "Account information change."
+  },
+  {
+    "id": "TC008",
+    "input": "I would like to know if you offer student discounts.",
+    "expected_output": {
+      "category": "general",
+      "summary": "The customer is asking whether student discounts are available."
+    },
+    "expected_difficulty": "easy",
+    "notes": "General product or pricing information."
+  },
+  {
+    "id": "TC009",
+    "input": "I can't sign in because the verification code never arrives. I've tried five times!",
+    "expected_output": {
+      "category": "account",
+      "summary": "The customer cannot sign in because they are not receiving the verification code."
+    },
+    "expected_difficulty": "medium",
+    "notes": "Account authentication problem."
+  },
+  {
+    "id": "TC010",
+    "input": "I was charged €49.99 and I don't recognize this payment.",
+    "expected_output": {
+      "category": "billing",
+      "summary": "The customer does not recognize a €49.99 charge on their account."
+    },
+    "expected_difficulty": "medium",
+    "notes": "Potential unauthorized or unexpected billing charge."
+  },
+  {
+  "id": "TC011",
+  "input": "Why did my subscription price increase this month?",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer is asking why their subscription price increased."
+  },
   "expected_difficulty": "easy",
-  "notes": "Basic duplicate billing issue."
+  "notes": "Clear pricing and billing question."
+},
+{
+  "id": "TC012",
+  "input": "I need an invoice for my latest payment.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer is requesting an invoice for their latest payment."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear invoice request."
+},
+{
+  "id": "TC013",
+  "input": "Can I get a refund for my subscription?",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer is asking for a subscription refund."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear refund request."
+},
+{
+  "id": "TC014",
+  "input": "My payment keeps getting declined even though my card works elsewhere.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer reports that their payment is repeatedly being declined."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Payment failure with additional context."
+},
+{
+  "id": "TC015",
+  "input": "I paid for the upgrade but my account still shows the old plan.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer paid for a plan upgrade but their account still shows the old plan."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Combines payment and account state."
+},
+{
+  "id": "TC016",
+  "input": "There is a €9.99 charge on my card that I don't remember making.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer does not recognize a €9.99 charge on their card."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Unexpected charge."
+},
+{
+  "id": "TC017",
+  "input": "I cancelled my subscription last week, so why was I charged again?",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer was charged after cancelling their subscription."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Cancellation followed by unexpected billing."
+},
+{
+  "id": "TC018",
+  "input": "My bank says the payment went through, but your website says the transaction failed.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer reports a mismatch between their bank payment status and the website transaction status."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Ambiguous payment-status situation."
+},
+{
+  "id": "TC019",
+  "input": "I was billed for something I never ordered.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer reports being billed for an item they did not order."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Unexpected billing."
+},
+{
+  "id": "TC020",
+  "input": "Can you explain what this charge on my statement is?",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer is asking for an explanation of a charge on their statement."
+  },
+  "expected_difficulty": "medium",
+  "notes": "General billing clarification."
+},
+{
+  "id": "TC021",
+  "input": "The app freezes whenever I open the settings page.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports that the app freezes when opening the settings page."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear application issue."
+},
+{
+  "id": "TC022",
+  "input": "I cannot upload my profile picture.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer cannot upload their profile picture."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear upload failure."
+},
+{
+  "id": "TC023",
+  "input": "The dashboard is completely blank after I log in.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports that the dashboard appears blank after logging in."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear interface problem."
+},
+{
+  "id": "TC024",
+  "input": "The export button gives me an error every time.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer receives an error whenever they try to export data."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear technical error."
+},
+{
+  "id": "TC025",
+  "input": "Notifications stopped working after the latest update.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports that notifications stopped working after the latest update."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Technical issue linked to a software update."
+},
+{
+  "id": "TC026",
+  "input": "The page takes forever to load and sometimes eventually crashes.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports extremely slow page loading followed by occasional crashes."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Performance and stability issue."
+},
+{
+  "id": "TC027",
+  "input": "I can log in on my phone but the desktop application keeps showing an error.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer can log in on their phone but receives an error in the desktop application."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Platform-specific technical problem."
+},
+{
+  "id": "TC028",
+  "input": "The search worked yesterday but now returns no results for anything.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports that the search function has stopped returning results."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Search functionality regression."
+},
+{
+  "id": "TC029",
+  "input": "It worked perfectly until I updated the app, and now every screen is lagging.",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer reports severe performance problems after updating the app."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Technical regression after an update."
+},
+{
+  "id": "TC030",
+  "input": "The payment page says my card is invalid, but I can see the money was already taken from my account.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer reports an invalid-card message despite money already being deducted from their account."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Intentionally tests billing versus technical classification; billing is the expected primary category."
+},
+{
+  "id": "TC031",
+  "input": "I forgot my username.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer has forgotten their username."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Very short account request."
+},
+{
+  "id": "TC032",
+  "input": "How do I reset my password?",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer is asking how to reset their password."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear password request."
+},
+{
+  "id": "TC033",
+  "input": "Please delete my account.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer wants to delete their account."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear account-management request."
+},
+{
+  "id": "TC034",
+  "input": "I changed my phone number and need to update it on my profile.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer wants to update the phone number associated with their profile."
+  },
+  "expected_difficulty": "easy",
+  "notes": "Clear account information update."
+},
+{
+  "id": "TC035",
+  "input": "Why did you lock me out? I entered the correct password!",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer reports being locked out despite entering what they believe is the correct password."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Account access problem with conflicting password information."
+},
+{
+  "id": "TC036",
+  "input": "My verification email never arrives, so I can't finish setting up my account.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer cannot complete account setup because the verification email is not arriving."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Account verification issue."
+},
+{
+  "id": "TC037",
+  "input": "Someone changed the email address on my account and now I can't access it.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer reports an unauthorized email change that has prevented account access."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Account security and access issue."
+},
+{
+  "id": "TC038",
+  "input": "Can I use two different email addresses with the same account?",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer is asking whether an account can have two email addresses."
+  },
+  "expected_difficulty": "medium",
+  "notes": "Account configuration question."
+},
+{
+  "id": "TC039",
+  "input": "login not working",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer reports that they cannot log into their account."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Very short input with minimal context."
+},
+{
+  "id": "TC040",
+  "input": "Ich kann mich nicht anmelden und bekomme keinen Bestätigungscode.",
+  "expected_output": {
+    "category": "account",
+    "summary": "The customer cannot sign in because they are not receiving a verification code."
+  },
+  "expected_difficulty": "hard",
+  "notes": "German-language account authentication case."
+},
+{
+  "id": "TC041",
+  "input": "What countries do you currently support?",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking which countries are currently supported."
+  },
+  "expected_difficulty": "easy",
+  "notes": "General information request."
+},
+{
+  "id": "TC042",
+  "input": "Do you have a mobile app?",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking whether a mobile app is available."
+  },
+  "expected_difficulty": "easy",
+  "notes": "General product question."
+},
+{
+  "id": "TC043",
+  "input": "Where can I find your terms and conditions?",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking where to find the terms and conditions."
+  },
+  "expected_difficulty": "easy",
+  "notes": "General information request."
+},
+{
+  "id": "TC044",
+  "input": "Is there a free trial?",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking whether a free trial is available."
+  },
+  "expected_difficulty": "easy",
+  "notes": "General pricing/product question."
+},
+{
+  "id": "TC045",
+  "input": "Can I change my plan whenever I want?",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking whether they can change their subscription plan at any time."
+  },
+  "expected_difficulty": "medium",
+  "notes": "General product policy question."
+},
+{
+  "id": "TC046",
+  "input": "Your service looks interesting, but I want to know what features are included in the premium plan.",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking which features are included in the premium plan."
+  },
+  "expected_difficulty": "medium",
+  "notes": "General product information."
+},
+{
+  "id": "TC047",
+  "input": "wow great, another update that breaks everything 🙄",
+  "expected_output": {
+    "category": "technical",
+    "summary": "The customer sarcastically reports that an update has caused problems."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Sarcastic technical complaint."
+},
+{
+  "id": "TC048",
+  "input": "Hallo, ich möchte wissen, ob es einen Studentenrabatt gibt.",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is asking whether a student discount is available."
+  },
+  "expected_difficulty": "hard",
+  "notes": "German-language general information request."
+},
+{
+  "id": "TC049",
+  "input": "I was charged twice AND I can't log in to check my invoice.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "The customer was charged twice and cannot log in to check their invoice."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Multiple issues; billing is the primary issue."
+},
+{
+  "id": "TC050",
+  "input": "Nothing works. Please help.",
+  "expected_output": {
+    "category": "general",
+    "summary": "The customer is requesting help without providing enough information to identify a specific issue."
+  },
+  "expected_difficulty": "hard",
+  "notes": "Extremely vague customer request."
+}
+]
 }
