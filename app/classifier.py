@@ -1,25 +1,8 @@
 import json
-import os
 
-from dotenv import load_dotenv
-from google import genai
+import ollama
 
 from models import PromptConfig, ClassificationOutput
-
-
-load_dotenv()
-
-
-api_key = os.getenv("GEMINI_API_KEY")
-
-if not api_key:
-    raise ValueError(
-        "GEMINI_API_KEY was not found. "
-        "Please check your .env file."
-    )
-
-
-client = genai.Client(api_key=api_key)
 
 
 def classify_email(
@@ -35,18 +18,18 @@ Customer email:
 {email}
 """
 
-    interaction = client.interactions.create(
+    response = ollama.chat(
         model=prompt_config.model,
-        input=prompt
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        format="json"
     )
 
-    result = interaction.output_text.strip()
-
-    # Remove Markdown code fences if Gemini returns them
-    if result.startswith("```"):
-        result = result.replace("```json", "")
-        result = result.replace("```", "")
-        result = result.strip()
+    result = response["message"]["content"].strip()
 
     data = json.loads(result)
 

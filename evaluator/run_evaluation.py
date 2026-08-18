@@ -3,28 +3,78 @@ import sys
 from pathlib import Path
 
 
+# ============================================================
+# PROJECT PATHS
+# ============================================================
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-sys.path.insert(0, str(PROJECT_ROOT / "app"))
+sys.path.insert(
+    0,
+    str(PROJECT_ROOT / "app")
+)
 
+sys.path.insert(
+    0,
+    str(PROJECT_ROOT / "evaluator")
+)
+
+
+# ============================================================
+# APPLICATION IMPORTS
+# ============================================================
 
 from classifier import classify_email
 from prompt_loader import load_prompt
+from save_results import save_evaluation
 
 
-DATASET_PATH = PROJECT_ROOT / "datasets" / "golden_dataset_v1.json"
-PROMPT_PATH = PROJECT_ROOT / "prompts" / "support_classifier_v1_1.yaml"
+# ============================================================
+# FILE PATHS
+# ============================================================
 
+DATASET_PATH = (
+    PROJECT_ROOT
+    / "datasets"
+    / "golden_dataset_v1.json"
+)
+
+PROMPT_PATH = (
+    PROJECT_ROOT
+    / "prompts"
+    / "support_classifier_v1_1.yaml"
+)
+
+
+# ============================================================
+# LOAD DATASET
+# ============================================================
 
 def load_dataset():
-    """Load the golden dataset."""
+    """
+    Load the golden evaluation dataset.
+    """
 
-    with open(DATASET_PATH, "r", encoding="utf-8") as file:
+    with open(
+        DATASET_PATH,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
         return json.load(file)
 
 
-def evaluate_case(test_case, prompt_config):
-    """Run one test case through Gemini."""
+# ============================================================
+# EVALUATE SINGLE TEST CASE
+# ============================================================
+
+def evaluate_case(
+    test_case,
+    prompt_config
+):
+    """
+    Run one test case through the LLM classifier.
+    """
 
     result = classify_email(
         test_case["input"],
@@ -37,28 +87,51 @@ def evaluate_case(test_case, prompt_config):
 
     actual_category = result.category
 
+    category_pass = (
+        actual_category == expected_category
+    )
+
     return {
         "id": test_case["id"],
+
         "input": test_case["input"],
-        "expected_category": expected_category,
-        "actual_category": actual_category,
-        "expected_summary": (
-            test_case["expected_output"]["summary"]
-        ),
-        "actual_summary": result.summary,
-        "category_pass": (
-            actual_category == expected_category
-        ),
-        "difficulty": test_case["expected_difficulty"],
-        "error": None
+
+        "expected_category":
+            expected_category,
+
+        "actual_category":
+            actual_category,
+
+        "expected_summary":
+            test_case["expected_output"]["summary"],
+
+        "actual_summary":
+            result.summary,
+
+        "category_pass":
+            category_pass,
+
+        "difficulty":
+            test_case["expected_difficulty"],
+
+        "error":
+            None
     }
 
+
+# ============================================================
+# MAIN EVALUATION
+# ============================================================
 
 def main():
 
     print("=" * 60)
     print("LLM REGRESSION EVALUATION")
     print("=" * 60)
+
+    # --------------------------------------------------------
+    # Load dataset
+    # --------------------------------------------------------
 
     dataset = load_dataset()
 
@@ -76,9 +149,17 @@ def main():
 
     print()
 
-    print("Loading prompt configuration...")
+    # --------------------------------------------------------
+    # Load prompt configuration
+    # --------------------------------------------------------
 
-    prompt_config = load_prompt(PROMPT_PATH)
+    print(
+        "Loading prompt configuration..."
+    )
+
+    prompt_config = load_prompt(
+        PROMPT_PATH
+    )
 
     print(
         f"Prompt version: "
@@ -91,6 +172,10 @@ def main():
     )
 
     print()
+
+    # --------------------------------------------------------
+    # Run test cases
+    # --------------------------------------------------------
 
     results = []
 
@@ -112,6 +197,8 @@ def main():
             )
 
             results.append(result)
+
+            # Determine status
 
             if result["category_pass"]:
                 status = "PASS"
@@ -136,91 +223,161 @@ def main():
         except Exception as error:
 
             print(
-                f"    Status:   ERROR"
+                "    Status:   ERROR"
             )
 
             print(
                 f"    Reason:   {error}"
             )
 
+            # Store the error instead of
+            # silently ignoring the test case
+
             results.append({
-                "id": test_case["id"],
-                "input": test_case["input"],
-                "expected_category": (
-                    test_case["expected_output"]["category"]
-                ),
-                "actual_category": None,
-                "expected_summary": (
-                    test_case["expected_output"]["summary"]
-                ),
-                "actual_summary": None,
-                "category_pass": False,
-                "difficulty": test_case["expected_difficulty"],
-                "error": str(error)
+
+                "id":
+                    test_case["id"],
+
+                "input":
+                    test_case["input"],
+
+                "expected_category":
+                    test_case[
+                        "expected_output"
+                    ]["category"],
+
+                "actual_category":
+                    None,
+
+                "expected_summary":
+                    test_case[
+                        "expected_output"
+                    ]["summary"],
+
+                "actual_summary":
+                    None,
+
+                "category_pass":
+                    False,
+
+                "difficulty":
+                    test_case[
+                        "expected_difficulty"
+                    ],
+
+                "error":
+                    str(error)
             })
 
-    # Calculate evaluation statistics
+    # ========================================================
+    # CALCULATE STATISTICS
+    # ========================================================
 
     passed = sum(
         1
         for result in results
-        if result.get("category_pass") is True
-        and result.get("error") is None
+        if result.get(
+            "category_pass"
+        ) is True
+        and result.get(
+            "error"
+        ) is None
     )
 
     failed = sum(
         1
         for result in results
-        if result.get("category_pass") is False
-        and result.get("error") is None
+        if result.get(
+            "category_pass"
+        ) is False
+        and result.get(
+            "error"
+        ) is None
     )
 
     errors = sum(
         1
         for result in results
-        if result.get("error") is not None
+        if result.get(
+            "error"
+        ) is not None
     )
 
-    evaluated = passed + failed
+    evaluated = (
+        passed
+        + failed
+    )
 
     if evaluated > 0:
-        accuracy = passed / evaluated
+
+        accuracy = (
+            passed
+            / evaluated
+        )
+
     else:
+
         accuracy = 0
 
-    # Final summary
+
+    # ========================================================
+    # DISPLAY SUMMARY
+    # ========================================================
 
     print()
+
     print("=" * 60)
     print("EVALUATION SUMMARY")
     print("=" * 60)
 
     print(
-        f"Total test cases : {len(test_cases)}"
+        f"Total test cases : "
+        f"{len(test_cases)}"
     )
 
     print(
-        f"Evaluated        : {evaluated}"
+        f"Evaluated        : "
+        f"{evaluated}"
     )
 
     print(
-        f"Passed           : {passed}"
+        f"Passed           : "
+        f"{passed}"
     )
 
     print(
-        f"Failed           : {failed}"
+        f"Failed           : "
+        f"{failed}"
     )
 
     print(
-        f"Errors           : {errors}"
+        f"Errors           : "
+        f"{errors}"
     )
 
     print(
-        f"Category accuracy: {accuracy:.2%}"
+        f"Category accuracy: "
+        f"{accuracy:.2%}"
     )
 
     print("=" * 60)
 
 
+    # ========================================================
+    # SAVE RESULT TO HISTORY
+    # ========================================================
+
+    save_evaluation(
+        results,
+        prompt_config,
+        dataset["dataset_version"]
+    )
+
+
+# ============================================================
+# PROGRAM ENTRY POINT
+# ============================================================
+
 if __name__ == "__main__":
+
     main()
