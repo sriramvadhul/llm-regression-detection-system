@@ -3,10 +3,8 @@ import sys
 from pathlib import Path
 
 
-# Project root
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-# Allow imports from app/
 sys.path.insert(0, str(PROJECT_ROOT / "app"))
 
 
@@ -14,7 +12,6 @@ from classifier import classify_email
 from prompt_loader import load_prompt
 
 
-# Files
 DATASET_PATH = PROJECT_ROOT / "datasets" / "golden_dataset_v1.json"
 PROMPT_PATH = PROJECT_ROOT / "prompts" / "support_classifier_v1_1.yaml"
 
@@ -40,10 +37,6 @@ def evaluate_case(test_case, prompt_config):
 
     actual_category = result.category
 
-    category_pass = (
-        actual_category == expected_category
-    )
-
     return {
         "id": test_case["id"],
         "input": test_case["input"],
@@ -53,8 +46,11 @@ def evaluate_case(test_case, prompt_config):
             test_case["expected_output"]["summary"]
         ),
         "actual_summary": result.summary,
-        "category_pass": category_pass,
-        "difficulty": test_case["expected_difficulty"]
+        "category_pass": (
+            actual_category == expected_category
+        ),
+        "difficulty": test_case["expected_difficulty"],
+        "error": None
     }
 
 
@@ -64,7 +60,6 @@ def main():
     print("LLM REGRESSION EVALUATION")
     print("=" * 60)
 
-    # Load dataset
     dataset = load_dataset()
 
     test_cases = dataset["test_cases"]
@@ -81,7 +76,6 @@ def main():
 
     print()
 
-    # Load prompt configuration
     print("Loading prompt configuration...")
 
     prompt_config = load_prompt(PROMPT_PATH)
@@ -98,7 +92,6 @@ def main():
 
     print()
 
-    # Run evaluation
     results = []
 
     for index, test_case in enumerate(
@@ -120,11 +113,10 @@ def main():
 
             results.append(result)
 
-            status = (
-                "PASS"
-                if result["category_pass"]
-                else "FAIL"
-            )
+            if result["category_pass"]:
+                status = "PASS"
+            else:
+                status = "FAIL"
 
             print(
                 f"    Expected: "
@@ -144,40 +136,83 @@ def main():
         except Exception as error:
 
             print(
-                f"    ERROR: {error}"
+                f"    Status:   ERROR"
             )
 
-    # Calculate results
+            print(
+                f"    Reason:   {error}"
+            )
+
+            results.append({
+                "id": test_case["id"],
+                "input": test_case["input"],
+                "expected_category": (
+                    test_case["expected_output"]["category"]
+                ),
+                "actual_category": None,
+                "expected_summary": (
+                    test_case["expected_output"]["summary"]
+                ),
+                "actual_summary": None,
+                "category_pass": False,
+                "difficulty": test_case["expected_difficulty"],
+                "error": str(error)
+            })
+
+    # Calculate evaluation statistics
+
     passed = sum(
         1
         for result in results
-        if result["category_pass"]
+        if result.get("category_pass") is True
+        and result.get("error") is None
     )
 
-    failed = len(results) - passed
-
-    accuracy = (
-        passed / len(results)
-        if results
-        else 0
+    failed = sum(
+        1
+        for result in results
+        if result.get("category_pass") is False
+        and result.get("error") is None
     )
 
-    # Summary
+    errors = sum(
+        1
+        for result in results
+        if result.get("error") is not None
+    )
+
+    evaluated = passed + failed
+
+    if evaluated > 0:
+        accuracy = passed / evaluated
+    else:
+        accuracy = 0
+
+    # Final summary
+
     print()
     print("=" * 60)
     print("EVALUATION SUMMARY")
     print("=" * 60)
 
     print(
-        f"Total evaluated : {len(results)}"
+        f"Total test cases : {len(test_cases)}"
     )
 
     print(
-        f"Passed          : {passed}"
+        f"Evaluated        : {evaluated}"
     )
 
     print(
-        f"Failed          : {failed}"
+        f"Passed           : {passed}"
+    )
+
+    print(
+        f"Failed           : {failed}"
+    )
+
+    print(
+        f"Errors           : {errors}"
     )
 
     print(
