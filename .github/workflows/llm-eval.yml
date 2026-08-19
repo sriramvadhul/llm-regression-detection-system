@@ -7,6 +7,7 @@ on:
       - "datasets/**"
       - "evaluator/**"
       - "app/**"
+      - "baselines/**"
       - ".github/workflows/llm-eval.yml"
 
   pull_request:
@@ -15,6 +16,7 @@ on:
       - "datasets/**"
       - "evaluator/**"
       - "app/**"
+      - "baselines/**"
       - ".github/workflows/llm-eval.yml"
 
 jobs:
@@ -23,47 +25,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # -------------------------------------------------------
-      # Checkout repository
-      # -------------------------------------------------------
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-
-      # -------------------------------------------------------
-      # Python setup
-      # -------------------------------------------------------
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-
-      # -------------------------------------------------------
-      # Install dependencies
-      # -------------------------------------------------------
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-
-      # -------------------------------------------------------
-      # Validate golden dataset
-      # -------------------------------------------------------
-
       - name: Validate golden dataset
         run: |
           python datasets/validate_dataset.py
-
-
-      # -------------------------------------------------------
-      # Python compile / syntax checks
-      # -------------------------------------------------------
 
       - name: Compile project files
         run: |
@@ -71,14 +48,11 @@ jobs:
           python -m py_compile app/classifier.py
           python -m py_compile app/prompt_loader.py
           python -m py_compile evaluator/run_evaluation.py
+          python -m py_compile evaluator/save_results.py
           python -m py_compile evaluator/regression_detector.py
           python -m py_compile evaluator/case_comparison.py
+          python -m py_compile dashboard/app.py
 
-
-      # -------------------------------------------------------
-      # Regression quality gate
-      # -------------------------------------------------------
-
-      - name: Run regression gate
+      - name: Run regression quality gate
         run: |
           python evaluator/regression_detector.py

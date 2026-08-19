@@ -1,10 +1,19 @@
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HISTORY_DIR = PROJECT_ROOT / "history"
+
+BASELINE_FILE = (
+    PROJECT_ROOT
+    / "baselines"
+    / "llama3_2_prompt_v1_1.json"
+)
+
+MODEL = "llama3.2:3b"
+CURRENT_PROMPT = "1.2"
 
 MIN_COMPLETION_RATE = 0.90
 WARNING_THRESHOLD = 0.03
@@ -12,7 +21,11 @@ CRITICAL_THRESHOLD = 0.08
 
 
 def load_evaluation(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(
+        file_path,
+        "r",
+        encoding="utf-8"
+    ) as file:
         return json.load(file)
 
 
@@ -41,7 +54,7 @@ def validate_run(run, label):
     return True
 
 
-def find_latest_run(prompt_version, model_name):
+def find_latest_current_run():
     files = sorted(
         HISTORY_DIR.glob("evaluation_*.json"),
         reverse=True
@@ -51,8 +64,8 @@ def find_latest_run(prompt_version, model_name):
         run = load_evaluation(file)
 
         if (
-            str(run.get("prompt_version")) == str(prompt_version)
-            and run.get("model") == model_name
+            str(run.get("prompt_version")) == CURRENT_PROMPT
+            and run.get("model") == MODEL
             and completion_rate(run) >= MIN_COMPLETION_RATE
         ):
             return file, run
@@ -64,7 +77,10 @@ def detect_regression(baseline, current):
     baseline_accuracy = baseline["category_accuracy"]
     current_accuracy = current["category_accuracy"]
 
-    accuracy_change = current_accuracy - baseline_accuracy
+    accuracy_change = (
+        current_accuracy
+        - baseline_accuracy
+    )
 
     if accuracy_change <= -CRITICAL_THRESHOLD:
         status = "CRITICAL"
@@ -89,36 +105,37 @@ def main():
     print("LLM REGRESSION DETECTION")
     print("=" * 60)
 
-    MODEL = "llama3.2:3b"
-    BASELINE_PROMPT = "1.1"
-    CURRENT_PROMPT = "1.2"
-
-    baseline_file, baseline = find_latest_run(
-        BASELINE_PROMPT,
-        MODEL
-    )
-
-    current_file, current = find_latest_run(
-        CURRENT_PROMPT,
-        MODEL
-    )
-
-    if baseline is None:
+    if not BASELINE_FILE.exists():
         print(
-            f"No valid baseline run found for "
-            f"prompt {BASELINE_PROMPT} and model {MODEL}."
+            f"Baseline file not found: "
+            f"{BASELINE_FILE}"
         )
-        return
+        sys.exit(1)
+
+    baseline = load_evaluation(
+        BASELINE_FILE
+    )
+
+    current_file, current = (
+        find_latest_current_run()
+    )
 
     if current is None:
         print(
-            f"No valid current run found for "
-            f"prompt {CURRENT_PROMPT} and model {MODEL}."
+            f"No valid evaluation found for "
+            f"prompt {CURRENT_PROMPT} "
+            f"and model {MODEL}."
         )
-        return
+        sys.exit(1)
 
-    print(f"Baseline: {baseline_file.name}")
-    print(f"Current:  {current_file.name}")
+    print(
+        f"Baseline: {BASELINE_FILE.name}"
+    )
+
+    print(
+        f"Current:  {current_file.name}"
+    )
+
     print()
 
     print(
@@ -143,11 +160,17 @@ def main():
 
     print()
 
-    if not validate_run(baseline, "Baseline"):
-        return
+    if not validate_run(
+        baseline,
+        "Baseline"
+    ):
+        sys.exit(1)
 
-    if not validate_run(current, "Current"):
-        return
+    if not validate_run(
+        current,
+        "Current"
+    ):
+        sys.exit(1)
 
     result = detect_regression(
         baseline,
@@ -175,6 +198,7 @@ def main():
         f"Regression status: "
         f"{result['status']}"
     )
+
     if result["status"] == "CRITICAL":
         print("CI RESULT: FAIL")
         sys.exit(2)
@@ -186,7 +210,6 @@ def main():
     else:
         print("CI RESULT: PASS")
         sys.exit(0)
-    print("=" * 60)
 
 
 if __name__ == "__main__":
