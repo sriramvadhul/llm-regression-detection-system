@@ -42,7 +42,7 @@ DATASET_PATH = (
 PROMPT_PATH = (
     PROJECT_ROOT
     / "prompts"
-    / "support_classifier_v1_1.yaml"
+    / "support_classifier_v1_2.yaml"
 )
 
 

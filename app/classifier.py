@@ -1,5 +1,3 @@
-import json
-
 import ollama
 
 from models import PromptConfig, ClassificationOutput
@@ -26,11 +24,16 @@ Customer email:
                 "content": prompt
             }
         ],
-        format="json"
+
+        format=ClassificationOutput.model_json_schema(),
+
+        options={
+            "temperature": 0
+        }
     )
 
-    result = response["message"]["content"].strip()
+    result = response["message"]["content"]
 
-    data = json.loads(result)
-
-    return ClassificationOutput(**data)
+    return ClassificationOutput.model_validate_json(
+        result
+    )

@@ -1,94 +1,85 @@
 import json
 from pathlib import Path
+import sys
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HISTORY_DIR = PROJECT_ROOT / "history"
 
+MIN_COMPLETION_RATE = 0.90
+WARNING_THRESHOLD = 0.03
+CRITICAL_THRESHOLD = 0.08
+
 
 def load_evaluation(file_path):
-    """Load an evaluation result JSON file."""
-
-    with open(
-        file_path,
-        "r",
-        encoding="utf-8"
-    ) as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
-def find_previous_evaluation(
-    current_file
-):
-    """
-    Find the most recent evaluation file
-    before the current evaluation.
-    """
+def completion_rate(run):
+    total = run.get("total_cases", 0)
+    evaluated = run.get("evaluated_cases", 0)
 
+    if total == 0:
+        return 0
+
+    return evaluated / total
+
+
+def validate_run(run, label):
+    rate = completion_rate(run)
+
+    if rate < MIN_COMPLETION_RATE:
+        print(
+            f"{label} run is incomplete: "
+            f"{run.get('evaluated_cases', 0)}/"
+            f"{run.get('total_cases', 0)} "
+            f"({rate:.2%}) evaluated."
+        )
+        return False
+
+    return True
+
+
+def find_latest_run(prompt_version, model_name):
     files = sorted(
-        HISTORY_DIR.glob("evaluation_*.json")
+        HISTORY_DIR.glob("evaluation_*.json"),
+        reverse=True
     )
 
-    previous_files = [
-        file
-        for file in files
-        if file.resolve() != current_file.resolve()
-    ]
+    for file in files:
+        run = load_evaluation(file)
 
-    if not previous_files:
-        return None
+        if (
+            str(run.get("prompt_version")) == str(prompt_version)
+            and run.get("model") == model_name
+            and completion_rate(run) >= MIN_COMPLETION_RATE
+        ):
+            return file, run
 
-    return previous_files[-1]
+    return None, None
 
 
-def detect_regression(
-    baseline,
-    current,
-    threshold=0.0
-):
-    """
-    Compare baseline and current evaluation.
+def detect_regression(baseline, current):
+    baseline_accuracy = baseline["category_accuracy"]
+    current_accuracy = current["category_accuracy"]
 
-    A regression occurs when the current
-    category accuracy decreases by more than
-    the configured threshold.
-    """
+    accuracy_change = current_accuracy - baseline_accuracy
 
-    baseline_accuracy = baseline[
-        "category_accuracy"
-    ]
+    if accuracy_change <= -CRITICAL_THRESHOLD:
+        status = "CRITICAL"
 
-    current_accuracy = current[
-        "category_accuracy"
-    ]
+    elif accuracy_change <= -WARNING_THRESHOLD:
+        status = "WARNING"
 
-    accuracy_change = (
-        current_accuracy
-        - baseline_accuracy
-    )
-
-    regression = (
-        accuracy_change < -threshold
-    )
+    else:
+        status = "PASS"
 
     return {
-        "baseline_prompt_version":
-            baseline["prompt_version"],
-
-        "current_prompt_version":
-            current["prompt_version"],
-
-        "baseline_accuracy":
-            baseline_accuracy,
-
-        "current_accuracy":
-            current_accuracy,
-
-        "accuracy_change":
-            accuracy_change,
-
-        "regression_detected":
-            regression
+        "baseline_accuracy": baseline_accuracy,
+        "current_accuracy": current_accuracy,
+        "accuracy_change": accuracy_change,
+        "status": status
     }
 
 
@@ -98,63 +89,70 @@ def main():
     print("LLM REGRESSION DETECTION")
     print("=" * 60)
 
-    evaluation_files = sorted(
-        HISTORY_DIR.glob(
-            "evaluation_*.json"
-        )
+    MODEL = "llama3.2:3b"
+    BASELINE_PROMPT = "1.1"
+    CURRENT_PROMPT = "1.2"
+
+    baseline_file, baseline = find_latest_run(
+        BASELINE_PROMPT,
+        MODEL
     )
 
-    if len(evaluation_files) < 2:
+    current_file, current = find_latest_run(
+        CURRENT_PROMPT,
+        MODEL
+    )
 
+    if baseline is None:
         print(
-            "Not enough evaluation history."
+            f"No valid baseline run found for "
+            f"prompt {BASELINE_PROMPT} and model {MODEL}."
         )
-
-        print(
-            "At least two evaluation runs "
-            "are required for comparison."
-        )
-
         return
 
-    current_file = evaluation_files[-1]
+    if current is None:
+        print(
+            f"No valid current run found for "
+            f"prompt {CURRENT_PROMPT} and model {MODEL}."
+        )
+        return
 
-    baseline_file = evaluation_files[-2]
+    print(f"Baseline: {baseline_file.name}")
+    print(f"Current:  {current_file.name}")
+    print()
 
     print(
-        f"Baseline: {baseline_file.name}"
+        f"Baseline model: "
+        f"{baseline.get('model')}"
     )
 
     print(
-        f"Current:  {current_file.name}"
+        f"Current model:  "
+        f"{current.get('model')}"
+    )
+
+    print(
+        f"Baseline prompt: "
+        f"{baseline.get('prompt_version')}"
+    )
+
+    print(
+        f"Current prompt:  "
+        f"{current.get('prompt_version')}"
     )
 
     print()
 
-    baseline = load_evaluation(
-        baseline_file
-    )
+    if not validate_run(baseline, "Baseline"):
+        return
 
-    current = load_evaluation(
-        current_file
-    )
+    if not validate_run(current, "Current"):
+        return
 
     result = detect_regression(
         baseline,
         current
     )
-
-    print(
-        f"Baseline prompt: "
-        f"{result['baseline_prompt_version']}"
-    )
-
-    print(
-        f"Current prompt:  "
-        f"{result['current_prompt_version']}"
-    )
-
-    print()
 
     print(
         f"Baseline accuracy: "
@@ -173,18 +171,21 @@ def main():
 
     print()
 
-    if result["regression_detected"]:
+    print(
+        f"Regression status: "
+        f"{result['status']}"
+    )
+    if result["status"] == "CRITICAL":
+        print("CI RESULT: FAIL")
+        sys.exit(2)
 
-        print(
-            "REGRESSION DETECTED"
-        )
+    elif result["status"] == "WARNING":
+        print("CI RESULT: FAIL")
+        sys.exit(1)
 
     else:
-
-        print(
-            "NO REGRESSION DETECTED"
-        )
-
+        print("CI RESULT: PASS")
+        sys.exit(0)
     print("=" * 60)
 
 
