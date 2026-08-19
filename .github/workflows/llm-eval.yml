@@ -8,6 +8,8 @@ on:
       - "evaluator/**"
       - "app/**"
       - "baselines/**"
+      - "dashboard/**"
+      - "requirements.txt"
       - ".github/workflows/llm-eval.yml"
 
   pull_request:
@@ -17,6 +19,8 @@ on:
       - "evaluator/**"
       - "app/**"
       - "baselines/**"
+      - "dashboard/**"
+      - "requirements.txt"
       - ".github/workflows/llm-eval.yml"
 
 jobs:
